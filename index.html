@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore - Proyecto Final UI Definitivo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: #131b2e;
+            --bg-panel: #172038;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+        header {
+            background-color: var(--bg-card); border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo span { color: var(--accent); }
+
+        .nav-buttons { display: flex; gap: 15px; align-items: center; }
+        .btn-nav {
+            background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main);
+            padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .btn-nav:hover { background: rgba(59, 130, 246, 0.15); border-color: var(--accent); }
+        .cart-badge { background: var(--accent); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem; }
+
+        .main-container {
+            max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem;
+            display: grid; grid-template-columns: 280px 1fr; gap: 2rem; width: 100%; flex: 1;
+        }
+
+        @media (max-width: 900px) { .main-container { grid-template-columns: 1fr; } }
+
+        .search-wrapper { grid-column: 1 / -1; position: relative; margin-bottom: 0.5rem; }
+        .search-box {
+            width: 100%; padding: 0.9rem 1rem 0.9rem 3rem; background: var(--bg-card);
+            border: 1px solid var(--border); border-radius: 10px; color: var(--text-main); font-size: 1rem; outline: none;
+        }
+        .search-box:focus { border-color: var(--accent); }
+        .search-wrapper i { position: absolute; left: 1.1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+        .filters-sidebar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; height: fit-content; }
+        .filter-section { margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1.2rem; }
+        .filter-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.8rem; }
+        .filter-option { display: flex; align-items: center; gap: 10px; margin-bottom: 0.6rem; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); }
+        .filter-option:hover { color: var(--text-main); }
+        .filter-option input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+        .btn-reset-filters {
+            width: 100%; background: transparent; border: 1px dashed var(--border); color: var(--text-muted);
+            padding: 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+        }
+        .btn-reset-filters:hover { border-color: var(--danger); color: var(--danger); }
+
+        .content-area { display: flex; flex-direction: column; gap: 1.5rem; }
+        .catalog-header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-card); padding: 1rem 1.5rem; border: 1px solid var(--border); border-radius: 12px;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .sort-select { background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 8px; outline: none; }
+
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+        .product-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: 0.2s; }
+        .product-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+        .product-img { width: 100%; height: 160px; object-fit: cover; background: #1a233a; }
+        .product-info { padding: 1rem; display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
+        .product-category { font-size: 0.75rem; color: var(--accent); font-weight: 600; }
+        .product-title { font-size: 0.95rem; font-weight: 600; margin: 4px 0 8px 0; }
+        .product-price { font-size: 1.15rem; font-weight: 700; }
+        .stock-tag { font-size: 0.75rem; margin-bottom: 12px; font-weight: 600; }
+        .stock-tag.in-stock { color: var(--success); }
+        .stock-tag.out-stock { color: var(--danger); }
+
+        .btn-action { background: var(--accent); color: white; border: none; padding: 0.6rem; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
+        .btn-action:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+
+        /* Paginación inferior para los 500 productos */
+        .pagination-container { display: flex; justify-content: center; gap: 8px; margin: 1.5rem 0; align-items: center; }
+        .page-btn { background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); padding: 0.5rem 0.9rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        .page-btn.active { background: var(--accent); border-color: var(--accent); }
+        .page-btn:hover:not(.active) { background: rgba(59, 130, 246, 0.2); }
+
+        /* Dashboard de KPIs (Exclusivo Administrador) */
+        .dashboard-view { display: none; width: 100%; max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; flex-direction: column; gap: 2rem; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+        .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 8px; }
+        .kpi-title { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--text-main); }
+        .table-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th, td { padding: 0.8rem; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); }
+
+        /* Modales */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border); width: 90%; max-width: 500px; border-radius: 16px; padding: 2rem; position: relative; max-height: 90vh; overflow-y: auto; }
+        .close-modal { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid var(--border); }
+        .form-input { width: 100%; padding: 0.65rem; background: var(--bg-panel); border: 1px solid var(--border); color: #fff; border-radius: 6px; outline: none; font-size: 0.9rem; margin-top: 4px; }
+        
+        .option-group { margin-bottom: 1rem; }
+        .option-label { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; display: block; }
+        .chips-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .chip-opt { background: var(--bg-panel); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; color: var(--text-main); }
+        .chip-opt.selected { border-color: var(--accent); background: rgba(59, 130, 246, 0.2); }
+
+        .pay-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
+        .pay-method-btn { background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-muted); padding: 0.6rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; text-align: center; }
+        .pay-method-btn.selected { border-color: var(--accent); color: var(--text-main); background: rgba(59, 130, 246, 0.15); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo" onclick="switchView('store')">
+            <i class="fa-solid fa-bolt" style="color: var(--accent);"></i> Tech<span>Store</span>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn-nav" onclick="switchView('store')"><i class="fa-solid fa-store"></i> Tienda</button>
+            <button class="btn-nav" onclick="openAdminLogin()"><i class="fa-solid fa-lock"></i> Admin Dashboard</button>
+            <button class="btn-nav" onclick="openModal('cart-modal')">
+                <i class="fa-solid fa-cart-shopping"></i> Carrito <span class="cart-badge" id="cart-count">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- VISTA TIENDA -->
+    <div class="main-container" id="store-view">
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-input" class="search-box" placeholder="Buscar cpu, ram, tarjeta, laptop, audifonos..." oninput="currentPage = 1; applyFilters()">
+        </div>
+
+        <aside class="filters-sidebar">
+            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 1rem;"><i class="fa-solid fa-filter" style="color: var(--accent);"></i> Filtros</div>
+            <div class="filter-section">
+                <div class="filter-title">Categorías</div>
+                <div id="category-filters-container"></div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-title">Precio</div>
+                <label class="filter-option"><input type="radio" name="price-range" value="all" checked onchange="currentPage = 1; applyFilters()"> Todos</label>
+                <label class="filter-option"><input type="radio" name="price-range" value="low" onchange="currentPage = 1; applyFilters()"> Menos de $3,000</label>
+                <label class="filter-option"><input type="radio" name="price-range" value="mid" onchange="currentPage = 1; applyFilters()"> $3,000 - $9,000</label>
+                <label class="filter-option"><input type="radio" name="price-range" value="high" onchange="currentPage = 1; applyFilters()"> Más de $9,000</label>
+            </div>
+            <button class="btn-reset-filters" onclick="resetAllFilters()"><i class="fa-solid fa-rotate-left"></i> Limpiar filtros</button>
+        </aside>
+
+        <main class="content-area">
+            <div class="catalog-header">
+                <div id="results-count-text" style="font-size: 0.9rem; color: var(--text-muted);">Cargando...</div>
+                <select id="sort-filter" class="sort-select" onchange="currentPage = 1; applyFilters()">
+                    <option value="default">Ordenar por: Relevancia</option>
+                    <option value="price-asc">Menor precio</option>
+                    <option value="price-desc">Mayor precio</option>
+                </select>
+            </div>
+            <div class="products-grid" id="products-container"></div>
+            <!-- Paginación para navegar los 500 productos -->
+            <div class="pagination-container" id="pagination-container"></div>
+        </main>
+    </div>
+
+    <!-- VISTA DASHBOARD DE KPIS (ADMINISTRADOR) -->
+    <div class="dashboard-view" id="dashboard-view">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Panel de Control y Métricas (Dashboard Admin)</h2>
+            <button class="btn-nav" onclick="switchView('store')"><i class="fa-solid fa-arrow-left"></i> Volver a la Tienda</button>
+        </div>
+        <div class="dashboard-grid">
+            <div class="kpi-card">
+                <div class="kpi-title">1. Ventas Totales</div>
+                <div class="kpi-value" id="kpi-ventas">$0 MXN</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">2. Pedidos Totales</div>
+                <div class="kpi-value" id="kpi-pedidos">1,500</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">3. Ticket Promedio</div>
+                <div class="kpi-value" id="kpi-ticket">$0 MXN</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">4. Alertas Stock Bajo</div>
+                <div class="kpi-value" style="color: var(--danger);">3 Productos</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">5. Tasa de Conversión</div>
+                <div class="kpi-value" style="color: var(--success);">4.2%</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h3>Historial de Pedidos Recientes (Simulación de 1,500 compras)</h3>
+            <table>
+                <thead>
+                    <tr><th>ID Pedido</th><th>Cliente</th><th>Total</th><th>Fecha</th><th>Estado</th></tr>
+                </thead>
+                <tbody id="orders-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Detalle y Selección de Opciones del Producto -->
+    <div class="modal-overlay" id="product-detail-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('product-detail-modal')"><i class="fa-solid fa-xmark"></i></button>
+            <div id="product-detail-body"></div>
+        </div>
+    </div>
+
+    <!-- Modal Carrito -->
+    <div class="modal-overlay" id="cart-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('cart-modal')"><i class="fa-solid fa-xmark"></i></button>
+            <h2>Tu Carrito de Compras</h2>
+            <div id="cart-items-container" style="margin: 1rem 0; max-height: 200px; overflow-y: auto;"></div>
+            
+            <div style="margin: 1rem 0; border-top: 1px solid var(--border); padding-top: 1rem;">
+                <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Calcular Envío por Código Postal:</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="cp-input" class="form-input" placeholder="Ej. 87000" maxlength="5" style="margin-top:0;" oninput="resetShippingCalculation()">
+                    <button class="btn-action" style="width: auto; padding: 0 1rem;" onclick="calculateShipping()">Calcular</button>
+                </div>
+                <div id="shipping-cost-text" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">⚠️ Ingresa tu código postal y haz clic en "Calcular".</div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.1rem; margin-top: 1rem;">
+                <span>Total + Envío:</span>
+                <span id="cart-total-price">$0.00 MXN</span>
+            </div>
+            <!-- Botón bloqueado obligatoriamente hasta calcular C.P. -->
+            <button class="btn-action" id="btn-proceed-checkout" style="margin-top: 1.5rem;" onclick="openCheckoutModal()" disabled>Calcula el envío para proceder</button>
+        </div>
+    </div>
+
+    <!-- Modal Checkout con Métodos de Pago Reales -->
+    <div class="modal-overlay" id="checkout-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('checkout-modal')"><i class="fa-solid fa-xmark"></i></button>
+            <h2>Finalizar Compra Segura</h2>
+            <div class="pay-methods" style="margin-top: 1rem;">
+                <div class="pay-method-btn selected" id="pm-card" onclick="setPaymentMethod('card')"><i class="fa-regular fa-credit-card"></i> Tarjeta</div>
+                <div class="pay-method-btn" id="pm-cash" onclick="setPaymentMethod('cash')"><i class="fa-solid fa-store"></i> OXXO Pay</div>
+                <div class="pay-method-btn" id="pm-paypal" onclick="setPaymentMethod('paypal')"><i class="fa-brands fa-paypal"></i> PayPal</div>
+            </div>
+            <form id="payment-form" onsubmit="processPayment(event)" style="display: flex; flex-direction: column; gap: 10px;">
+                <div>
+                    <label style="font-size:0.8rem; color:var(--text-muted);">Correo (para recibir estado del pedido):</label>
+                    <input type="email" id="customer-email" class="form-input" required placeholder="correo@ejemplo.com">
+                </div>
+                <div id="payment-fields-container">
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-muted);">Número de Tarjeta:</label>
+                        <input type="text" class="form-input" required placeholder="4242 4242 4242 4242">
+                    </div>
+                </div>
+                <button type="submit" class="btn-action" style="margin-top: 1rem;">Completar Pago y Enviar Correo</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let allProducts = [];
+        let cart = [];
+        let shippingCost = 0;
+        let isShippingCalculated = false; // Restricción estricta de C.P.
+        let filteredProductsCache = [];
+        let simulatedOrders = [];
+        let currentPaymentMethod = 'card';
+        let selectedProductForModal = null;
+        let chosenColor = 'Negro Matte';
+        let chosenStorage = '256GB SSD';
+        
+        let currentPage = 1;
+        const itemsPerPage = 24;
+
+        const synonymMap = {
+            'cpu': ['procesador', 'ryzen', 'intel', 'core', 'componentes'],
+            'procesador': ['cpu', 'ryzen', 'intel', 'core', 'componentes'],
+            'gpu': ['tarjeta', 'gráfica', 'grafica', 'rtx', 'gtx', 'video', 'componentes'],
+            'grafica': ['gpu', 'tarjeta', 'rtx', 'gtx', 'video', 'componentes'],
+            'tarjeta': ['gpu', 'grafica', 'rtx', 'gtx', 'componentes'],
+            'ram': ['memoria', 'ddr4', 'ddr5', 'componentes'],
+            'memoria': ['ram', 'ddr4', 'ddr5', 'componentes'],
+            'laptop': ['portatil', 'notebook', 'equipo', 'laptops'],
+            'portatil': ['laptop', 'notebook', 'equipo', 'laptops'],
+            'audifonos': ['auriculares', 'cascos', 'headset', 'audio', 'bocina', 'micrófono'],
+            'audio': ['audífonos', 'audifonos', 'bocina', 'micrófono'],
+            'monitor': ['pantalla', 'display', 'monitores'],
+            'pantalla': ['monitor', 'monitores']
+        };
+
+        function getSearchTerms(query) {
+            const q = query.toLowerCase().trim();
+            if (!q) return [];
+            let terms = [q];
+            for (let key in synonymMap) {
+                if (key.startsWith(q) || q.includes(key)) {
+                    terms = terms.concat(synonymMap[key]);
+                }
+            }
+            return terms;
+        }
+
+        function initApp() {
+            const categories = ['Laptops', 'Monitores', 'Componentes', 'Periféricos', 'Audio'];
+            const productNames = {
+                'Laptops': ['Laptop Gamer Pro', 'Ultrabook Slim', 'Laptop Creator Studio', 'Laptop Estudiantil X'],
+                'Monitores': ['Monitor Curvo 144Hz', 'Monitor Gaming 24"', 'Monitor 4K Ultra HD', 'Monitor IPS 75Hz'],
+                'Componentes': ['Procesador Ryzen CPU', 'Tarjeta Gráfica GPU RTX', 'Memoria RAM 16GB', 'Tarjeta Madre B550'],
+                'Periféricos': ['Teclado Mecánico RGB', 'Mouse Inalámbrico Pro', 'Alfombrilla XL Gamer'],
+                'Audio': ['Bocina Bluetooth RGB', 'Micrófono de Condensador', 'Audífonos Gamer 7.1']
+            };
+
+            const images = [
+                'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400',
+                'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400',
+                'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=400',
+                'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400',
+                'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=400'
+            ];
+
+            // Generación exacta de los 500 productos reales en memoria
+            allProducts = Array.from({ length: 500 }, (_, index) => {
+                const id = index + 1;
+                const category = categories[index % categories.length];
+                const nameList = productNames[category];
+                const baseName = nameList[index % nameList.length];
+
+                return {
+                    id: id,
+                    name: `${baseName} #${id}`,
+                    category: category,
+                    price: Math.floor(Math.random() * 15000) + 500,
+                    inStock: index % 6 !== 0,
+                    stockQty: Math.floor(Math.random() * 20) + 1,
+                    image: images[index % images.length]
+                };
+            });
+
+            // Simular 1,500 compras para el Dashboard de administración
+            const estados = ['Pagado', 'Enviado', 'Entregado'];
+            const clientes = ['Juan Pérez', 'María Gómez', 'Carlos Ruiz', 'Ana López', 'Luis Torres'];
+            for (let i = 1; i <= 1500; i++) {
+                simulatedOrders.push({
+                    id: 1000 + i,
+                    cliente: clientes[Math.floor(Math.random() * clientes.length)],
+                    total: Math.floor(Math.random() * 14500) + 800,
+                    date: `2026-11-${String((i % 28) + 1).padStart(2, '0')}`,
+                    status: estados[Math.floor(Math.random() * estados.length)]
+                });
+            }
+
+            renderCategories();
+            applyFilters();
+            updateDashboardKPIs();
+        }
+
+        function switchView(view) {
+            document.getElementById('store-view').style.display = view === 'store' ? 'grid' : 'none';
+            document.getElementById('dashboard-view').style.display = view === 'dashboard' ? 'flex' : 'none';
+        }
+
+        function openAdminLogin() {
+            const password = prompt("Ingresa la contraseña de Administrador (prueba con: 1234):");
+            if (password === "1234") {
+                switchView('dashboard');
+            } else if (password !== null) {
+                alert("Contraseña incorrecta. Acceso denegado.");
+            }
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('category-filters-container');
+            const categories = ['Laptops', 'Monitores', 'Componentes', 'Periféricos', 'Audio'];
+            let html = `<label class="filter-option"><input type="checkbox" value="all" checked onchange="currentPage=1; applyFilters()"> Todas</label>`;
+            categories.forEach(cat => {
+                html += `<label class="filter-option"><input type="checkbox" class="cat-checkbox" value="${cat}" onchange="currentPage=1; applyFilters()"> ${cat}</label>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function applyFilters() {
+            const searchInput = document.getElementById('search-input').value;
+            const priceVal = document.querySelector('input[name="price-range"]:checked').value;
+            const sortVal = document.getElementById('sort-filter').value;
+            const selectedCat = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => cb.value);
+
+            const searchTerms = getSearchTerms(searchInput);
+
+            filteredProductsCache = allProducts.filter(p => {
+                const pName = p.name.toLowerCase();
+                const pCat = p.category.toLowerCase();
+
+                let matchesSearch = true;
+                if (searchTerms.length > 0) {
+                    matchesSearch = searchTerms.some(term => pName.includes(term) || pCat.includes(term));
+                }
+
+                const matchesCat = selectedCat.length === 0 || selectedCat.includes('all') || selectedCat.some(c => pCat === c.toLowerCase());
+                
+                let matchesPrice = true;
+                if (priceVal === 'low') matchesPrice = p.price <= 3000;
+                if (priceVal === 'mid') matchesPrice = p.price > 3000 && p.price <= 9000;
+                if (priceVal === 'high') matchesPrice = p.price > 9000;
+
+                return matchesSearch && matchesCat && matchesPrice;
+            });
+
+            if (sortVal === 'price-asc') filteredProductsCache.sort((a, b) => a.price - b.price);
+            if (sortVal === 'price-desc') filteredProductsCache.sort((a, b) => b.price - a.price);
+
+            renderProducts();
+            renderPagination();
+        }
+
+        function renderProducts() {
+            const container = document.getElementById('products-container');
+            document.getElementById('results-count-text').innerText = `Mostrando ${filteredProductsCache.length} de 500 productos totales`;
+            container.innerHTML = '';
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginatedItems = filteredProductsCache.slice(start, end);
+
+            paginatedItems.forEach(p => {
+                container.innerHTML += `
+                    <div class="product-card" onclick="openProductDetail(${p.id})">
+                        <img src="${p.image}" class="product-img" alt="${p.name}">
+                        <div class="product-info">
+                            <div>
+                                <div class="product-category">${p.category}</div>
+                                <div class="product-title">${p.name}</div>
+                            </div>
+                            <div>
+                                <div class="product-price">$${p.price.toLocaleString()} MXN</div>
+                                <div class="stock-tag ${p.inStock ? 'in-stock' : 'out-stock'}">
+                                    ${p.inStock ? `Stock: ${p.stockQty}` : 'Agotado'}
+                                </div>
+                                <button class="btn-action" ${!p.inStock ? 'disabled' : ''}>
+                                    ${p.inStock ? 'Ver Opciones' : 'Agotado'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderPagination() {
+            const paginationContainer = document.getElementById('pagination-container');
+            const totalPages = Math.ceil(filteredProductsCache.length / itemsPerPage);
+            paginationContainer.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            for (let i = 1; i <= totalPages; i++) {
+                paginationContainer.innerHTML += `
+                    <button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>
+                `;
+            }
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderProducts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openProductDetail(id) {
+            selectedProductForModal = allProducts.find(p => p.id === id);
+            chosenColor = 'Negro Matte';
+            chosenStorage = '256GB SSD';
+
+            const body = document.getElementById('product-detail-body');
+            body.innerHTML = `
+                <img src="${selectedProductForModal.image}" style="width:100%; height:200px; object-fit:cover; border-radius:8px; margin-bottom:1rem;">
+                <div style="font-size:0.8rem; color:var(--accent); font-weight:600; text-transform:uppercase;">${selectedProductForModal.category}</div>
+                <h2>${selectedProductForModal.name}</h2>
+                <div style="font-size:1.4rem; font-weight:700; margin: 8px 0 1rem 0;">$${selectedProductForModal.price.toLocaleString()} MXN</div>
+                
+                <div class="option-group">
+                    <label class="option-label">Selecciona el Color / Acabado:</label>
+                    <div class="chips-options">
+                        <div class="chip-opt selected" onclick="selectOption('color', 'Negro Matte', this)">Negro Matte</div>
+                        <div class="chip-opt" onclick="selectOption('color', 'Plata', this)">Plata</div>
+                        <div class="chip-opt" onclick="selectOption('color', 'Azul', this)">Azul</div>
+                    </div>
+                </div>
+
+                <div class="option-group">
+                    <label class="option-label">Selecciona Variante / Espacio:</label>
+                    <div class="chips-options">
+                        <div class="chip-opt selected" onclick="selectOption('storage', '256GB SSD', this)">256GB SSD</div>
+                        <div class="chip-opt" onclick="selectOption('storage', '512GB SSD', this)">512GB SSD</div>
+                        <div class="chip-opt" onclick="selectOption('storage', '1TB NVMe', this)">1TB NVMe</div>
+                    </div>
+                </div>
+
+                <button class="btn-action" style="margin-top: 1rem;" onclick="addCurrentProductToCart()">Agregar al Carrito con estas opciones</button>
+            `;
+            openModal('product-detail-modal');
+        }
+
+        function selectOption(type, value, element) {
+            const parent = element.parentElement;
+            parent.querySelectorAll('.chip-opt').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            if (type === 'color') chosenColor = value;
+            if (type === 'storage') chosenStorage = value;
+        }
+
+        function addCurrentProductToCart() {
+            if (!selectedProductForModal) return;
+            const itemToAdd = {
+                ...selectedProductForModal,
+                uniqueName: `${selectedProductForModal.name} (${chosenColor}, ${chosenStorage})`
+            };
+            cart.push(itemToAdd);
+            document.getElementById('cart-count').innerText = cart.length;
+            updateCartUI();
+            closeModal('product-detail-modal');
+            alert('¡Producto agregado al carrito con sus variantes seleccionadas!');
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items-container');
+            container.innerHTML = '';
+            let itemsSubtotal = 0;
+            cart.forEach((item, idx) => {
+                itemsSubtotal += item.price;
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <div>
+                            <div><strong>${item.uniqueName}</strong></div>
+                            <div style="font-size:0.85rem; color:var(--text-muted);">$${item.price.toLocaleString()} MXN</div>
+                        </div>
+                        <i class="fa-solid fa-trash" style="color:var(--danger); cursor:pointer;" onclick="removeFromCart(${idx})"></i>
+                    </div>
+                `;
+            });
+
+            const grandTotal = itemsSubtotal + (isShippingCalculated ? shippingCost : 0);
+            document.getElementById('cart-total-price').innerText = `$${grandTotal.toLocaleString()} MXN`;
+
+            const btnCheckout = document.getElementById('btn-proceed-checkout');
+            if (cart.length === 0) {
+                btnCheckout.disabled = true;
+                btnCheckout.innerText = 'Tu carrito está vacío';
+            } else if (!isShippingCalculated) {
+                btnCheckout.disabled = true;
+                btnCheckout.innerText = 'Calcula el envío para proceder';
+            } else {
+                btnCheckout.disabled = false;
+                btnCheckout.innerText = 'Proceder al Pago';
+            }
+        }
+
+        function removeFromCart(idx) {
+            cart.splice(idx, 1);
+            document.getElementById('cart-count').innerText = cart.length;
+            updateCartUI();
+        }
+
+        function resetShippingCalculation() {
+            isShippingCalculated = false;
+            shippingCost = 0;
+            document.getElementById('shipping-cost-text').innerHTML = '⚠️ Ingresa tu código postal y haz clic en "Calcular".';
+            updateCartUI();
+        }
+
+        function calculateShipping() {
+            const cp = document.getElementById('cp-input').value.trim();
+            if (!/^\d{5}$/.test(cp)) { 
+                alert('Ingresa un código postal válido de 5 dígitos.'); 
+                resetShippingCalculation();
+                return; 
+            }
+
+            const cpNum = parseInt(cp, 10);
+            if (cpNum >= 87000 && cpNum <= 87900) { shippingCost = 90; }
+            else if (cpNum >= 1000 && cpNum <= 19000) { shippingCost = 150; }
+            else { shippingCost = 220; }
+
+            isShippingCalculated = true; // Envío calculado con éxito, se desbloquea el botón
+            document.getElementById('shipping-cost-text').innerHTML = `Costo a CP ${cp}: <strong style="color:var(--success);">+$${shippingCost} MXN</strong>`;
+            updateCartUI();
+        }
+
+        function setPaymentMethod(method) {
+            currentPaymentMethod = method;
+            document.querySelectorAll('.pay-method-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById(`pm-${method}`).classList.add('selected');
+
+            const container = document.getElementById('payment-fields-container');
+            if (method === 'card') {
+                container.innerHTML = `<div><label style="font-size:0.8rem; color:var(--text-muted);">Número de Tarjeta:</label><input type="text" class="form-input" required placeholder="4242 4242 4242 4242"></div>`;
+            } else if (method === 'cash') {
+                container.innerHTML = `<div style="font-size:0.85rem; color:var(--success); padding: 8px; background: rgba(16, 185, 129, 0.1); border-radius:6px;">Se generará un ticket digital de OXXO Pay para realizar tu pago en efectivo en tienda.</div>`;
+            } else if (method === 'paypal') {
+                container.innerHTML = `<div style="font-size:0.85rem; color:var(--accent); padding: 8px; background: rgba(59, 130, 246, 0.1); border-radius:6px;">Serás redirigido de forma segura a la plataforma de PayPal para autorizar el cargo.</div>`;
+            }
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function openCheckoutModal() {
+            if (cart.length === 0) { alert('Tu carrito está vacío'); return; }
+            if (!isShippingCalculated) { alert('Debes calcular el costo de envío con tu código postal antes de pagar.'); return; }
+            closeModal('cart-modal');
+            openModal('checkout-modal');
+        }
+
+        function processPayment(e) {
+            e.preventDefault();
+            const email = document.getElementById('customer-email').value;
+            const total = cart.reduce((acc, i) => acc + i.price, 0) + shippingCost;
+
+            simulatedOrders.unshift({
+                id: Date.now().toString().slice(-5),
+                cliente: email,
+                total: total,
+                date: new Date().toISOString().split('T')[0],
+                status: 'Pagado'
+            });
+
+            updateDashboardKPIs();
+            alert(`¡Pago procesado vía ${currentPaymentMethod.toUpperCase()} con éxito! Se envió el estado del pedido al correo: ${email}`);
+            
+            cart = [];
+            shippingCost = 0;
+            isShippingCalculated = false;
+            document.getElementById('cp-input').value = '';
+            document.getElementById('shipping-cost-text').innerHTML = '';
+            document.getElementById('cart-count').innerText = 0;
+            closeModal('checkout-modal');
+        }
+
+        function updateDashboardKPIs() {
+            const totalSales = simulatedOrders.reduce((acc, o) => acc + o.total, 0);
+            const totalOrders = simulatedOrders.length;
+            const avgTicket = totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
+
+            document.getElementById('kpi-ventas').innerText = `$${totalSales.toLocaleString()} MXN`;
+            document.getElementById('kpi-pedidos').innerText = totalOrders.toLocaleString();
+            document.getElementById('kpi-ticket').innerText = `$${avgTicket.toLocaleString()} MXN`;
+
+            const tbody = document.getElementById('orders-table-body');
+            tbody.innerHTML = '';
+            simulatedOrders.slice(0, 10).forEach(o => {
+                tbody.innerHTML += `<tr><td>#${o.id}</td><td>${o.cliente}</td><td>$${o.total.toLocaleString()} MXN</td><td>${o.date}</td><td><span style="color:var(--success); font-weight:600;">${o.status}</span></td></tr>`;
+            });
+        }
+
+        function resetAllFilters() {
+            document.getElementById('search-input').value = '';
+            document.querySelector('input[name="price-range"][value="all"]').checked = true;
+            document.getElementById('sort-filter').value = 'default';
+            currentPage = 1;
+            renderCategories();
+            applyFilters();
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
